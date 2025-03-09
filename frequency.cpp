@@ -1,70 +1,73 @@
-
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <string>
-#include <map>
 #include <algorithm>
 
 using namespace std;
 
-// Requirments:
-// 1. convert string to lowercae
-// analyze text files
-// count word frequencies
-// write to file
-// 2. Removing punctuation characters and any numbers using ‘isalnum‘ which acts like ’isalpha’.
-// Output the results
-// storing word frequencies using an array or a vector
-// 3. Sort the words by frequenc
-
-// 1. convert string to lowercase
-void toLowerCase(string &str) {
+// Convert string to lowercase
+void toLowerCase(string &str) { 
     transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
-void removePunctuationAndNumbers(string &str) {
-    str.erase(remove_if(str.begin(), str.end(), [](char c) { return !isalpha(c); }), str.end());
+// Remove punctuation and numbers
+void removePunctuationAndNumbers(string &str) { 
+    str.erase(remove_if(str.begin(), str.end(), [](char c) { return !isalpha(c) && !isspace(c); }), str.end());
 }
 
-map<string, int> countWordFrequencies(const string &filename) {
+// Count word frequencies
+vector<pair<string, int>> countWordFrequencies(const string &filename) { 
     ifstream file(filename);
-    map<string, int> wordCount;
+    vector<pair<string, int>> wordCountVector;
     string word;
 
     while (file >> word) {
         toLowerCase(word);
         removePunctuationAndNumbers(word);
         if (!word.empty()) {
-            wordCount[word]++;
+            auto it = find_if(wordCountVector.begin(), wordCountVector.end(), [&word](const pair<string, int>& element) { return element.first == word; });
+            if (it != wordCountVector.end()) {
+                it->second++;
+            } else {
+                wordCountVector.push_back(make_pair(word, 1));
+            }
         }
     }
 
-    return wordCount;
+    return wordCountVector;
 }
 
-void writeFrequenciesToFile(const map<string, int> &wordCount, const string &outputFilename) {
+// Write frequencies to file
+void writeFrequenciesToFile(const vector<pair<string, int>> &wordCountVector, const string &outputFilename) {
     ofstream outFile(outputFilename);
-    for (const auto &entry : wordCount) {
+    for (const auto &entry : wordCountVector) {
         outFile << entry.first << ": " << entry.second << endl;
     }
 }
 
-// 2. Remove punctuation from characters and numbers
-
-
-// 3. Count word frequency
-
-
 int main() {
-    string inputFilename = "/Users/maverickmoy/Documents/cs111/Word Frequency Counter/input.txt";
-    string outputFilename = "/Users/maverickmoy/Documents/cs111/Word Frequency Counter/output.txt";
+    string basePath = "/Users/maverickmoy/Documents/cs111/Word Frequency Counter/";
+    string inputFilename = basePath + "input.txt";
+    string outputFilename = basePath + "output.txt";
 
-    map<string, int> wordCount = countWordFrequencies(inputFilename);
-    writeFrequenciesToFile(wordCount, outputFilename);
+    vector<pair<string, int>> wordCountVector = countWordFrequencies(inputFilename);
+
+    // Optional: Sort the vector by frequency in descending order
+    sort(wordCountVector.begin(), wordCountVector.end(), [](const pair<string, int> &a, const pair<string, int> &b) {
+        return b.second < a.second;
+    });
+
+    cout << "Total unique words: " << wordCountVector.size() << endl;
+    cout << "Word frequencies: " << endl;
+    for (const auto &entry : wordCountVector) {
+        cout << entry.first << ": " << entry.second << endl;
+    }
+
+
+    // Save sorted word frequencies to file
+    writeFrequenciesToFile(wordCountVector, outputFilename);
 
     return 0;
 }
-

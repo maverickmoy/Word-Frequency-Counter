@@ -1,0 +1,1 @@
+This is a sample input file. This file contains some words, and some words are repeated. This is to test the word frequency counter.
